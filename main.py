@@ -12,5 +12,11 @@ url = st.text_input('Enter the URL of the website you want to scrape')
 if st.button("Scrape Site"):
     st.write(f"Scraping {url}...")
     result = scrape_website(url)
-    
+    body_content = extract_body_content(result)
+    cleaned_content = clean_body_content(body_content)
+
+    st.session_state.dom_content = cleaned_content
+
+    with st.expander("View DOM Content"):
+        st.text_area("DOM Content", cleaned_content, height=300)
 
