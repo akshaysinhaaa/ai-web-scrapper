@@ -2,28 +2,24 @@ from langchain_ollama import OllamaLLM
 from langchain_core.prompts import ChatPromptTemplate
 
 template = (
-    "You are tasked with extracting specific information from the following text content: {dom_content}. "
-    "Please follow these instructions carefully: \n\n"
-    "1. **Extract Information:** Only extract the information that directly matches the provided description: {parse_description}. "
-    "2. **No Extra Content:** Do not include any additional text, comments, or explanations in your response. "
-    "3. **Empty Response:** If no information matches the description, return an empty string ('')."
-    "4. **Direct Data Only:** Your output should contain only the data that is explicitly requested, with no other text."
+    "You are tasked with analyzing job listings from hirist.tech. Here is the job data:\n\n"
+    "{job_data}\n\n"
+    "Please determine if this job matches the following criteria: {criteria}\n\n"
+    "Answer with ONLY 'yes' or 'no'. No explanation needed."
 )
 
 model = OllamaLLM(model="llama2")
 
-
-def parse_with_ollama(dom_chunks, parse_description):
+def parse_with_ollama(job_data, criteria):
+    """Use Ollama to determine if a job matches specific criteria."""
     prompt = ChatPromptTemplate.from_template(template)
     chain = prompt | model
 
-    parsed_results = []
-
-    for i, chunk in enumerate(dom_chunks, start=1):
-        response = chain.invoke(
-            {"dom_content": chunk, "parse_description": parse_description}
-        )
-        print(f"Parsed batch: {i} of {len(dom_chunks)}")
-        parsed_results.append(response)
-
-    return "\n".join(parsed_results) 
+    response = chain.invoke({
+        "job_data": str(job_data),
+        "criteria": criteria
+    })
+    
+    # Clean and lowercase the response to check for yes/no
+    clean_response = response.strip().lower()
+    return "yes" in clean_response
